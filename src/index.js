@@ -2,10 +2,19 @@
 
 import dotenv from "dotenv";// This import feature is not fully implented so to use this we need to run an experimental feature which we can do in package.json file in dev script as --> "-r dotenv/config --experimental-json-modules"
 import connectDB from "./db/index.js";
+import app from './app.js'
 
 dotenv.config({ path: "./env" });
 
-connectDB(); // Connect to MongoDB.
+connectDB()// Connect to MongoDB.
+.then(()=>{
+    app.listen(process.env.PORT||3000,()=>{
+        console.log(`Server started at port ${process.env.PORT}`)
+    })
+})  
+.catch((err)=>{
+    console.log("Mongo db connection failed"+ err)
+})
 
 // function connectDB(){}
 
