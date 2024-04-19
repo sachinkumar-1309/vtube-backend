@@ -1,6 +1,6 @@
 import mongoose, { Schema } from "mongoose";
 import jwt  from "jsonwebtoken";
-import  bcrypt from 'bcrypt';
+import  bcrypt from 'bcrypt'; 
 
 const userSchema = new Schema(
   {
@@ -10,7 +10,7 @@ const userSchema = new Schema(
       unique: true,
       lowercase: true,
       trim: true,
-      index: true, // Search by this field
+      index: true, // Search by this field , Can aslo avoid it as without this also search will be good
     },
     email: {
       type: String,
@@ -49,15 +49,15 @@ const userSchema = new Schema(
   { timestamps: true }
 );
 
-userSchema.pre("save",function (next){
-    if(!this.isModified("password")) return next()
+userSchema.pre("save",function (next){  // Pre method :-
+    if(!this.isModified("password")) return next() // It passes the flag to next command if no changes had been made
     
-    this.password = bcrypt.hash(this.password,10)
+    this.password = bcrypt.hash(this.password,10) // 10:- Rounds of hashing
     next()
 })
 
 userSchema.methods.isPasswordCorrect=async function(password){
-    return await bcrypt.compare(password, this.password)
+    return await bcrypt.compare(password, this.password)//Password :- Original Password, this.password:-Hashed password
 }
 
 userSchema.methods.generateAccessToken=function(){
