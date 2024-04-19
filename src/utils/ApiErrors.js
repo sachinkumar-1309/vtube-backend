@@ -1,4 +1,4 @@
-class ApiErrors extends Error{
+class ApiErrors extends Error{//NodeJS provides an ERROR class from which all errors should inherit./*!
     constructor(
         statuscode,
         message="Something went wrong",
