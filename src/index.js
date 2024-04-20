@@ -4,7 +4,7 @@ import dotenv from "dotenv";// This import feature is not fully implented, so to
 import connectDB from "./db/index.js";
 import {app} from './app.js'
 
-dotenv.config({ path: "./env" });
+dotenv.config({ path: "./.env" });
 
 connectDB()// Connect to MongoDB.
 .then(()=>{

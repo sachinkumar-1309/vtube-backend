@@ -27,7 +27,7 @@ const userSchema = new Schema(
     },
     avatar: {
       type: String, // cloudinary
-      required: true,
+      required: false,
     },
     coverImage: {
       type: String, // cloudinary
@@ -49,10 +49,10 @@ const userSchema = new Schema(
   { timestamps: true }
 );
 
-userSchema.pre("save",function (next){  // Pre method :-
+userSchema.pre("save",async function (next){  // Pre method :-
     if(!this.isModified("password")) return next() // It passes the flag to next command if no changes had been made
     
-    this.password = bcrypt.hash(this.password,10) // 10:- Rounds of hashing
+    this.password =await bcrypt.hash(this.password,10) // 10:- Rounds of hashing
     next()
 })
 
