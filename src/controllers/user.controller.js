@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiErrors } from "../utils/ApiErrors.js";
 import { User } from "../models/users.models.js";
@@ -419,6 +420,7 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
   ]);
 
   if (!channel?.length) {
+    console.log("Channel: "+channel.length)
     throw new ApiErrors(404, "Channel does not exists");
   }
 
