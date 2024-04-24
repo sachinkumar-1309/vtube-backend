@@ -266,84 +266,217 @@ const getCurrentUser = asyncHandler(async (req, res) => {
 });
 
 const updateAccountDetails = asyncHandler(async (req, res) => {
+  const { fullname, email } = req.body;
 
-  const {fullname, email}=req.body
-
-  const user=User.findByIdAndUpdate(
+  const user = User.findByIdAndUpdate(
     req.user?._id,
     {
-      fullname,//fullname:fullname --> ES6 update
-      email
+      fullname, //fullname:fullname --> ES6 update
+      email,
     },
     {
-      new:true
+      new: true,
     }
-  ).select("-password")
+  ).select("-password");
   res
     .status(200)
     .json(new ApiResponses(200, user, "Account details updated successfully"));
 });
 
 const updateAvatar = asyncHandler(async (req, res) => {
+  const avatarLocalPath = req.file?.path;
 
-  const avatarLocalPath=req.file?.path
-
-  if(!avatarLocalPath){
-    throw new ApiResponses(400,"Please select an avatar image to upload.")
-  }
-  
-  const avatar=await uploadOnCloudinary(avatarLocalPath);
-  
-  if(!avatar.url){
-    throw new ApiResponses(400,"Error while uploading avatar file")
+  if (!avatarLocalPath) {
+    throw new ApiResponses(400, "Please select an avatar image to upload.");
   }
 
-  const user=User.findByIdAndUpdate(
+  const avatar = await uploadOnCloudinary(avatarLocalPath);
+
+  if (!avatar.url) {
+    throw new ApiResponses(400, "Error while uploading avatar file");
+  }
+
+  const user = await User.findByIdAndUpdate(
     req.user?._id,
     {
-      $set:{//$set changes only the specified file or field
-        avatar:avatar.url
-      }
+      $set: {
+        //$set changes only the specified file or field
+        avatar: avatar.url,
+      },
     },
     {
-      new:true
+      new: true,
     }
-  ).select("-password")
+  ).select("-password");
   res
     .status(200)
     .json(new ApiResponses(200, user, "Avatar updated successfully"));
 });
 
 const updateCoverImage = asyncHandler(async (req, res) => {
+  const coverImageLocalPath = req.file?.path;
 
-  const coverImageLocalPath=req.file?.path
-
-  if(!coverImageLocalPath){
-    throw new ApiResponses(400,"Please select an cover image to upload.")
-  }
-  
-  const coverImage=await uploadOnCloudinary(coverImageLocalPath);
-  
-  if(!coverImage.url){
-    throw new ApiResponses(400,"Error while uploading coverImage file")
+  if (!coverImageLocalPath) {
+    throw new ApiResponses(400, "Please select an cover image to upload.");
   }
 
-  const user=User.findByIdAndUpdate(
+  const coverImage = await uploadOnCloudinary(coverImageLocalPath);
+
+  if (!coverImage.url) {
+    throw new ApiResponses(400, "Error while uploading coverImage file");
+  }
+
+  const user = await User.findByIdAndUpdate(
     req.user?._id,
     {
-      $set:{//$set changes only the specified file or field
-        coverImage:coverImage.url
-      }
+      $set: {
+        //$set changes only the specified file or field
+        coverImage: coverImage.url,
+      },
     },
     {
-      new:true
+      new: true,
     }
-  ).select("-password")
+  ).select("-password");
   res
     .status(200)
     .json(new ApiResponses(200, user, "Cover image updated successfully"));
 });
 
+const getUserChannelProfile = asyncHandler(async (req, res) => {
+  const { username } = req.params; //request URL se aa rha hai, request body se nhi params se liye h
+
+  if (!username?.trim()) {
+    throw new ApiErrors(400, "Username is missing");
+  }
+
+  const channel = await User.aggregate([
+    {
+      $match: {
+        //match --> pehla wala return krta hai
+        username: username?.toLowerCase(),
+      }, //Yhn pr hmne filter kr liye ek document , aab hamare pass ek document hai
+    },
+    {
+      $lookup: {
+        from: "subscriptions", //subscriptionSchema se aaya hai Whn pe Subscription tha jo ki database mai "subscriptions" jaisa store hoga
+        localField: "_id",
+        foreignField: "channel",
+        as: "subscribers",
+      }, // yhn tk sare channels ko find kr liye h , jisse kya hoga ki sara subscriber ka count nhi pr document select ho jygega.Isko aage ja k count v kr lenge toh sara subscriber count mil jyega
+    },
+    {
+      $lookup: {
+        from: "subscriptions",
+        localField: "_id",
+        foreignField: "subscriber", //yeh subscriber subscriptionSchema mai jo subscriber hai whn se aaya h.
+        as: "subscribedTo",
+      },
+    },
+    {
+      $addFields: {
+        //$addFields  -> fields add karenge yahan pe,
+        subscribersCount: {
+          $size: "$subscribers", //$size -> size of array.... subscribers k aage $ esliye lagaye hai q ki wo aab ek field baan chuka h
+          //counts the document selected at the $lookup: from: "subscriptions" as: "subscribers"
+        },
+        channelsSubscribedToCount: {
+          $size: "$subscribedTo",
+          //counts the document selected at the $lookup: from: "subscriptions" as: "subscribedTo"
+        },
+        isSubscribed: {
+          //isse hmlog yeh dekheynge ki user subscribes hai ki nhi.
+          $cond: {
+            //$cond--> condition check
+            if: { $in: [req.user?._id, "$subscribers.subscriber"] }, //$in->> jisse users id agar list mein ho to true return karte hai,
+            then: true,
+            else: false,
+          },
+        },
+      },
+    },
+    {
+      $project: {
+        //sare values ko nhi deta but selected values ko deta h...
+        fullName: 1,
+        username: 1,
+        subscribersCount: 1,
+        channelsSubscribedToCount: 1,
+        isSubscribed: 1,
+        avatar: 1,
+        coverImage: 1,
+        email: 1,
+      },
+    },
+  ]);
+
+  if (!channel?.length) {
+    throw new ApiErrors(404, "Channel does not exists");
+  }
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponses(200, channel[0], "User channel fetched successfully")
+    );
+});
+
+const getWatchHistory = asyncHandler(async (req, res) => {
+  /*req.user._id;//aise user ko access kr skte h pr problem yeh h ki mongoDB mai jo _id store hota h wo ObjectId(fafhhrfi8479247949) aisa kuch structure mai store hota h , toh ismai pipeline se kaam nhi skte, mgr "new mongoose.Types.ObjectId(req.user._id)" se user mil jyega*/
+  const user = await User.aggregate([
+    {
+      $match: {
+        _id: new mongoose.Types.ObjectId(req.user._id),
+      },
+    },
+    {
+      $lookup: {
+        from: "videos",
+        localField: "watchHistory",
+        foreignField: "_id",
+        as: "watchHistory",
+        pipeline: [
+          {
+            $lookup: {
+              from: "users",
+              localField: "owner",
+              foreignField: "_id",
+              as: "owner",
+              pipeline: [
+                {
+                  $project: {
+                    //#project ko bahar nikal kr k v dekhna ki kya hota hai.... bahar in sense ki iss pipeline se bahar nikal k main pipeline mai
+                    fullName: 1,
+                    username: 1,
+                    avatar: 1,
+                  },
+                },
+              ],
+            },
+          },
+          {
+            //Iss part ko skip v kr skte the , q ki yeh pipeline jo return krega "ownwer" field k aandar wo ek array hoga jis kya hoga ki hm log ko further ek loop lagana hoga ,pr jaise ki hmlog jante h ki hume sirf first value hi milega toh uska firse value hi return kr dete h.
+            $addFields: {
+              owner: {
+                $first: "$owner",
+              },
+            },
+          },
+        ],
+      },
+    },
+  ]);
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponses(
+        200,
+        user[0].watchHistory,
+        "Fetched watch History successfully"
+      )
+    );
+});
 
 export {
   regiterUser,
@@ -355,4 +488,6 @@ export {
   updateAccountDetails,
   updateAvatar,
   updateCoverImage,
+  getUserChannelProfile,
+  getWatchHistory,
 };
