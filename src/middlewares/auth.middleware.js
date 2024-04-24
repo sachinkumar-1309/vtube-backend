@@ -10,18 +10,19 @@ export const verifyJWT = asyncHandler(
     next
   ) => {
     try {
-      /*const token =
+      const token =
             req.cookies?.accessToken ||
-            req.header("Authorization")?.replace("Bearer ", ""); //yhn pe Header k andar "Authorization:Bearer <token>" yeh milta hai hmlo ko, but hmlog ko "Bearer " toh chahihye hi nhi esliye .replace ka use kr k "Bearer " ko "<empty string>" se replace kr diye*/
-      const tokenFromCookies = req.cookies?.["access token"];
-      const tokenFromHeader = req
-        .header("Authorization")
-        ?.replace("Bearer ", "");
+            req.header("Authorization")?.replace("Bearer ", "")/* //yhn pe Header k andar "Authorization:Bearer <token>" yeh milta hai hmlo ko, but hmlog ko "Bearer " toh chahihye hi nhi esliye .replace ka use kr k "Bearer " ko "<empty string>" se replace kr diye*/
+      // const tokenFromCookies = req.cookies?.["access token"];
+      // const tokenFromHeader = req
+      //   .header("Authorization")
+      //   ?.replace("Bearer ", "");
 
       //   console.log("Token from cookies:", tokenFromCookies);
       //   console.log("Token from header:", tokenFromHeader);
 
-      const token = tokenFromCookies || tokenFromHeader;
+      // const token = tokenFromCookies || tokenFromHeader;
+      
       //   console.log("req: " + req.cookies);
       // //   console.log("accessToken cookie:", req.cookies.['access token']);
       //   console.log("Cookies:", Object.keys(req.cookies));

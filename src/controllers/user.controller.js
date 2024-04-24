@@ -248,9 +248,13 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 const changeCurrentPassword = asyncHandler(async (req, res) => {
   const { oldPassword, newPassword } = req.body;
 
+  console.log(" oldPassword "+oldPassword+" newPassword "+newPassword);
   const user = await User.findById(req.user?._id);
+
   const isPasswordCorrect = await user.isPasswordCorrect(oldPassword);
 
+  console.log("User: "+user+"\n isPasswordCorrect "+isPasswordCorrect)
+  
   if (!isPasswordCorrect) {
     throw new ApiErrors(401, "Old password is incorrect");
   }
@@ -286,11 +290,15 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
 const updateAvatar = asyncHandler(async (req, res) => {
   const avatarLocalPath = req.file?.path;
 
+  // console.log("req.file: "+req.file)
+  // console.log("req.file: "+avatarLocalPath +" path "+req.file?.path)
+
   if (!avatarLocalPath) {
     throw new ApiResponses(400, "Please select an avatar image to upload.");
   }
 
   const avatar = await uploadOnCloudinary(avatarLocalPath);
+  console.log("Avatar: "+avatar)
 
   if (!avatar.url) {
     throw new ApiResponses(400, "Error while uploading avatar file");
