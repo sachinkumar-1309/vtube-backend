@@ -15,7 +15,7 @@ const generateAccessAndRefreshToken = async (userID) => {
 
     user.refreshToken = refreshToken;
 
-    await user.save({ validateBeforeSave: false }); //user.save()--> yhn pe password field ya dusra requied field jo hoga whn pe wo v kick IN kr jyega jisse ki haar baar login krna pdega, esliye "validateBeforeSave:false" esliye yeh kiye hai... validition kuch mt lagao tm sidha ja k save kr do
+    await user.save({ validateBeforeSave: false }); //user.save()--> yhn pe password field ya dusra required field jo hoga whn pe wo v kick IN kr jyega jisse ki haar baar login krna pdega, esliye "validateBeforeSave:false" esliye yeh kiye hai... validition kuch mt lagao tm sidha ja k save kr do
 
     return { accessToken, refreshToken };
   } catch (error) {
@@ -30,13 +30,13 @@ const generateAccessAndRefreshToken = async (userID) => {
 const regiterUser = asyncHandler(async (req, res) => {
   // STEPS ---->
   // get user details from frontend
-  // vaildtion - not empty
+  // validation - not empty
   // check if user already exists : username , email
   // check upload images , check for avatar
   // upload them to cloudinary, avatar
   // create user object - create entry in db
-  // remove password and refresh token from the field resposne
-  //check for user cretion
+  // remove password and refresh token from the field response
+  //check for user creation
   //return res
 
   const { username, email, fullname, password } = req.body;
@@ -249,13 +249,13 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 const changeCurrentPassword = asyncHandler(async (req, res) => {
   const { oldPassword, newPassword } = req.body;
 
-  console.log(" oldPassword "+oldPassword+" newPassword "+newPassword);
+  console.log(" oldPassword " + oldPassword + " newPassword " + newPassword);
   const user = await User.findById(req.user?._id);
 
   const isPasswordCorrect = await user.isPasswordCorrect(oldPassword);
 
-  console.log("User: "+user+"\n isPasswordCorrect "+isPasswordCorrect)
-  
+  console.log("User: " + user + "\n isPasswordCorrect " + isPasswordCorrect);
+
   if (!isPasswordCorrect) {
     throw new ApiErrors(401, "Old password is incorrect");
   }
@@ -299,7 +299,7 @@ const updateAvatar = asyncHandler(async (req, res) => {
   }
 
   const avatar = await uploadOnCloudinary(avatarLocalPath);
-  console.log("Avatar: "+avatar)
+  console.log("Avatar: " + avatar);
 
   if (!avatar.url) {
     throw new ApiResponses(400, "Error while uploading avatar file");
@@ -368,7 +368,7 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
     },
     {
       $lookup: {
-        from: "subscriptions", //subscriptionSchema se aaya hai Whn pe Subscription tha jo ki database mai "subscriptions" jaisa store hoga
+        from: "subscriptions", //subscriptionSchema se aaya hai Whn pe Subscription tha jo ki database mai "subscriptions" jaisa store huaa tha
         localField: "_id",
         foreignField: "channel",
         as: "subscribers",
@@ -420,7 +420,7 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
   ]);
 
   if (!channel?.length) {
-    console.log("Channel: "+channel.length)
+    console.log("Channel: " + channel.length);
     throw new ApiErrors(404, "Channel does not exists");
   }
 
