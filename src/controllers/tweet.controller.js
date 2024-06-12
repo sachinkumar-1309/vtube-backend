@@ -44,7 +44,7 @@ const getUserTweets = asyncHandler(async (req, res) => {
     .json(
       new ApiResponses(
         200,
-        { id: tweets[0].id, content: tweets[0].content },
+        { tweets },
         "User tweets fetched successfully"
       )
     );
